@@ -1,49 +1,67 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, APIRequestContext } from '@playwright/test'
 import { TaskModel } from './fixtures/task.model'
+import { deleteTaskByHelper, postTask } from './support/helpers'
+import { TasksPage } from './support/pages/tasks'
+import data from './fixtures/tasks.json'
 //import { faker } from '@faker-js/faker'
 
-test('deve poder registar uma nova tarefa', async ({ page, request }) => {
+let tasksPage: TasksPage
+test.beforeEach(({ page }) => {
+    tasksPage = new TasksPage(page)
+}
 
-    const task: TaskModel= {
-        name: 'Ler um livro de TypeScript',
-        is_done: false
-    }
-    //Dado que eu tenho uma nova tarefa 
-    await request.delete('http://localhost:3333/helper/tasks/'+ task.name)
+)
+test.describe('registo', () => {
+    test('deve poder registar uma nova tarefa', async ({request }) => {
 
-    //E que estou na página de registo
-    await page.goto('http://localhost:3000')
+        const task = data.success as TaskModel
+        await deleteTaskByHelper(request, task.name)
+        await tasksPage.go()
+        await tasksPage.create(task)
+        await tasksPage.shouldHaveText(task.name)
 
-    //Quando faço o registo dessa tarefa 
-    const inputTaskName = page.locator('input[class*=InputNewTask]')
-    //await inputTaskName.fill(faker.lorem.words())
-    await inputTaskName.fill("Ler um livro de TypeScript")
-    await inputTaskName.press('Enter')
-    //await page.click('xpath=//button[contains(text(), "Create)]')
-    await page.click('css=button >> text=Create')
+    })
+    test('não deve permitir uma tarefa duplicada', async ({request }) => {
+        const task = data.duplicate as TaskModel
 
-    //Então essa tarefa deve ser mostrada na lista
-    const target = page.locator(`css=.task-item p >> text=${task.name}`)
-    await expect(target).toBeVisible()
-})
-test.only('não deve permitir uma tarefa duplicada', async ({page, request })=>
-{
-    const task:TaskModel = {
-        name: 'Comprar Ketchup',
-        is_done: false
-    }
 
-    await request.delete('http://localhost:3333/helper/tasks/'+ task.name)
-    const newTask = await request.post('http://localhost:3333/tasks/',{data: task})
-    expect(newTask.ok()).toBeTruthy()
-    await page.goto('http://localhost:3000')
-    const inputTaskName = page.locator('input[class*=InputNewTask]')
+        await deleteTaskByHelper(request, task.name)
+        await postTask(request, task)
+        await tasksPage.go()
+        await tasksPage.create(task)
+        await tasksPage.alertHaveText('Task already exists!')
+    })
 
-    await inputTaskName.fill(task.name)
-    await page.click('css=button >> text=Create')
+    test('campo obrigatório', async () => {
+        const task = data.required as TaskModel
 
-    const target = page.locator('.swal2-html-container')
-    await expect(target).toHaveText('Task already exists!')
+
+        await tasksPage.go()
+        await tasksPage.create(task)
+
+        const validationMessage = await tasksPage.inputTaskName.evaluate(e => (e as HTMLInputElement).validationMessage)
+        expect(validationMessage).toEqual('This is a required field')
+    })
 })
 
+test.describe('atualização', () => {
+    test('deve concluir uma tarefa', async ({ page, request }) => {
+        const task = data.update as TaskModel
+        await deleteTaskByHelper(request, task.name)
+        await postTask(request, task)
+        await tasksPage.go()
+        await tasksPage.toggle(task.name)
+        await tasksPage.shouldBeDone(task.name)
+    })
+})
 
+test.describe('exclusão', () => {
+    test('deve excluir uma tarefa', async ({request }) => {
+        const task = data.delete as TaskModel
+        await deleteTaskByHelper(request, task.name)
+        await postTask(request, task)
+        await tasksPage.go()
+        await tasksPage.removeTask(task.name)
+        await tasksPage.shouldNotExist(task.name)
+    })
+})
