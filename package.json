@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {},
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
-    "@types/node": "^20.11.30",
-    "dotenv": "^16.4.5"
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^20.17.10",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@faker-js/faker": "^8.4.1"
+    "@faker-js/faker": "^8.4.1",
+    "playwright": "^1.49.1"
   }
 }
