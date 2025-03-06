@@ -4,10 +4,14 @@ dotenv.config();
 
 // Função para aceitar cookies
 async function aceitarCookies(page) {
-    const cookies = page.locator('//section[@class="modal-cookies__content--bg modal-cookies__content"]//span[text()="Aceitar cookies"]');
+    const cookies = page.locator("xpath=//button[@id='onetrust-accept-btn-handler']");
     await cookies.click();
 }
-
+// Clicar no botão de Pesquisa da pagina inicial
+async function clickSearchButton(page) {
+    const cookies = page.locator("xpath=//a[@data-action='show-search']/div[@class='icon-wrapper']");
+    await cookies.click();
+}
 // Função para pesquisar um produto
 async function pesquisarProduto(page, produto) {
     const search_bar = page.locator("xpath=//form[@class='search']//input[@id='search']");
@@ -17,7 +21,7 @@ async function pesquisarProduto(page, produto) {
 }
 
 // Função para adicionar o PS5 ao carrinho
-async function adicionarPS5AoCarrinho(page) {
+async function adicionarPoloRugby(page) {
     const img_ps5 = page.locator("xpath=//ul[@class='listing-content__list listing-content__list--grid']//img[@src='https://www.worten.pt/i/cf1323a6b426b9b439b63370e3e243609312e5cd']");
     await img_ps5.click();
     
@@ -34,8 +38,8 @@ async function adicionarPS5AoCarrinho(page) {
 test.describe('Ecommerce', () => {
     
     test('Pesquisar por PS5 no site da Worten', async ({ page }) => {
-        // Acede ao site da Worten
-        await page.goto('https://www.worten.pt');
+        // Acede ao site da Fifty Outlet
+        await page.goto('https://fiftyoutlet.com/pt/pt');
         
         // Aceitar cookies
         await aceitarCookies(page);
